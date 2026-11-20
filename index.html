@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Input Penilaian Juri — Festival Inovasi</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #991b1b;
+      --primary-soft: #fef2f2;
+      --accent: #2563eb;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px 24px; width: 100%; }
+    .header {
+      background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+      color: #fff;
+      padding: 20px 24px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p { font-size: 13px; opacity: 0.92; margin-top: 4px; }
+    .status-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      background: rgba(255,255,255,0.18);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-refresh {
+      background: #ffffff;
+      color: #991b1b;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-refresh:hover { background: #fee2e2; }
+
+    .juri-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .juri-select-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    .juri-select-wrap label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .juri-info {
+      font-size: 12px;
+      color: var(--muted);
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .sheet-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tab-btn:hover { border-color: #fca5a5; background: #fff5f5; }
+    .tab-btn.active {
+      background: #991b1b;
+      color: #ffffff;
+      border-color: #991b1b;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 768px) {
+      .kpi-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .kpi-label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    .kpi-value { font-size: 26px; font-weight: 700; margin-top: 4px; color: var(--text); }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+    .panel-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .panel-title { font-size: 15px; font-weight: 700; }
+    .hint-text { font-size: 12px; color: var(--muted); }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    input[type="text"], select {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+    }
+    .table-wrap { overflow-x: auto; max-height: 620px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f1f5f9; font-weight: 700; position: sticky; top: 0; z-index: 1; }
+    th.center, td.center { text-align: center; }
+    tr:hover td { background: #fafafa; }
+    tr.row-selected td { background: #f0fdf4; }
+    input.vote-check {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #16a34a;
+    }
+    .status-pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .status-pill.picked {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .footer-row td { background: #fef2f2; font-weight: 700; color: var(--primary); position: sticky; bottom: 0; }
+    .error-banner {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Form Input Penilaian Juri — Festival Inovasi</h1>
+      <p id="lastUpdateText">Menghubungkan ke file Google Sheets juri...</p>
+    </div>
+    <div class="status-box">
+      <span class="badge" id="saveStatusBadge">Siap</span>
+      <span class="badge" id="statusBadge">Memuat data...</span>
+      <button class="btn-refresh" type="button" onclick="loadJuriData()">↻ Refresh Sekarang</button>
+    </div>
+  </div>
+
+  <div class="juri-bar">
+    <div class="juri-select-wrap">
+      <label for="juriSelect">Pilih Penilai / Juri:</label>
+      <select id="juriSelect" onchange="onJuriChange()" style="min-width: 280px;">
+        <option value="1">1. Dr. Kusuma Adi Achmad, ST.,MT</option>
+        <option value="2">2. Ahmad Ilyas</option>
+        <option value="3">3. Junaenah, S.AP., M.M</option>
+        <option value="4">4. Fahrus Salis</option>
+        <option value="5">5. Ade Asep Syarifudin</option>
+        <option value="6">6. Dwi Agustina, S.Pd.,M.Pd.B.I.,PhD</option>
+        <option value="7">7. Sevina Mahardini, ST.,MT.,M.Sc</option>
+      </select>
+    </div>
+    <div class="juri-info" id="juriScopeText">Kategori: AKTIF OPD &amp; AKTIF UNIT</div>
+  </div>
+
+  <div class="sheet-tabs" id="sheetTabs"></div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Inovasi Kategori Ini</div>
+      <div class="kpi-value" id="kpiTotalInovasi">-</div>
+      <div class="kpi-sub" id="kpiSheetLabel">Tab: -</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Inovasi Dipilih Juri Ini</div>
+      <div class="kpi-value" id="kpiDipilih">-</div>
+      <div class="kpi-sub">Tercengang pada tab aktif</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Belum Dipilih</div>
+      <div class="kpi-value" id="kpiBelum">-</div>
+      <div class="kpi-sub">Tersisa di daftar inovasi</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title" id="tablePanelTitle">Daftar Penilaian Inovasi</div>
+      <div class="hint-text">Centang kotak di kolom Pilih untuk langsung menyimpan ke spreadsheet juri</div>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Cari nama inovasi atau OPD/unit..." style="min-width: 260px; flex: 1;" />
+      <select id="filterSelect">
+        <option value="all">Semua Inovasi</option>
+        <option value="picked">Hanya yang Dipilih (✔)</option>
+        <option value="unpicked">Belum Dipilih (☐)</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 55px;">No</th>
+            <th>Nama Inovasi</th>
+            <th>OPD / Unit</th>
+            <th class="center" style="width: 110px;">Pilih</th>
+            <th class="center" style="width: 120px;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot>
+          <tr class="footer-row" id="footerRow"></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcabkVtOR-MVFa8bIMwb--pnD9ilIQHEOk0tE9lV7On32gNatzSoM96p_-8KGlh1pbUQ/exec";
+
+    const JURI_ALLOWED = {
+      1: ["AKTIF OPD", "AKTIF UNIT"],
+      2: ["AKTIF OPD", "AKTIF UNIT"],
+      3: ["AKTIF OPD", "AKTIF UNIT"],
+      4: ["IDE OPD", "IDE UNIT"],
+      5: ["IDE OPD", "IDE UNIT"],
+      6: ["IDE OPD", "IDE UNIT"],
+      7: ["AKTIF OPD", "AKTIF UNIT", "IDE OPD", "IDE UNIT"]
+    };
+
+    let currentJuriId = 1;
+    let allowedSheets = JURI_ALLOWED[1];
+    let activeSheet = allowedSheets[0];
+    let sheetsPayload = {};
+    let isSaving = false;
+
+    function renderTabs() {
+      const tabsEl = document.getElementById("sheetTabs");
+      tabsEl.innerHTML = "";
+
+      if (!allowedSheets.includes(activeSheet)) {
+        activeSheet = allowedSheets[0];
+      }
+
+      allowedSheets.forEach(sheetName => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tab-btn" + (sheetName === activeSheet ? " active" : "");
+        btn.textContent = sheetName;
+        btn.onclick = () => {
+          activeSheet = sheetName;
+          renderTabs();
+          renderView();
+        };
+        tabsEl.appendChild(btn);
+      });
+
+      document.getElementById("juriScopeText").textContent =
+        "Kategori Juri: " + allowedSheets.join(" & ");
+    }
+
+    function getCurrentRows() {
+      const s = sheetsPayload[activeSheet];
+      return s && Array.isArray(s.rows) ? s.rows : [];
+    }
+
+    function updateKPIs(rows) {
+      const total = rows.length;
+      const picked = rows.filter(r => Boolean(r.checked)).length;
+      const unpicked = total - picked;
+
+      document.getElementById("kpiTotalInovasi").textContent = total;
+      document.getElementById("kpiSheetLabel").textContent = "Tab: " + activeSheet;
+      document.getElementById("kpiDipilih").textContent = picked;
+      document.getElementById("kpiBelum").textContent = unpicked;
+    }
+
+    window.onToggleItem = async function(sheetRow, isChecked) {
+      const errBox = document.getElementById("errorBanner");
+      const saveBadge = document.getElementById("saveStatusBadge");
+      const rows = getCurrentRows();
+      const target = rows.find(r => r.sheetRow === sheetRow);
+      const prevState = target ? Boolean(target.checked) : !isChecked;
+
+      if (target) {
+        target.checked = isChecked;
+      }
+      renderView();
+
+      try {
+        isSaving = true;
+        saveBadge.textContent = "Menyimpan...";
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            juriId: currentJuriId,
+            sheetName: activeSheet,
+            sheetRow: sheetRow,
+            checked: isChecked
+          })
+        });
+        const json = await res.json();
+        if (!json.ok) {
+          throw new Error(json.error || "Gagal menyimpan perubahan");
+        }
+        errBox.style.display = "none";
+        saveBadge.textContent = "✓ Tersimpan";
+      } catch (err) {
+        if (target) target.checked = prevState;
+        renderView();
+        errBox.style.display = "block";
+        errBox.textContent = "Gagal menyimpan centang ke Google Sheets: " + err.message;
+        saveBadge.textContent = "⚠ Gagal Simpan";
+      } finally {
+        isSaving = false;
+      }
+    };
+
+    function renderView() {
+      const rows = getCurrentRows();
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      const filterVal = document.getElementById("filterSelect").value;
+      const juriLabel = document.getElementById("juriSelect").selectedOptions[0].text;
+
+      document.getElementById("tablePanelTitle").textContent =
+        `${juriLabel} — ${activeSheet}`;
+
+      const filtered = rows.filter(item => {
+        const matchText =
+          item.nama.toLowerCase().includes(q) ||
+          item.opd.toLowerCase().includes(q);
+        if (!matchText) return false;
+        if (filterVal === "picked") return Boolean(item.checked);
+        if (filterVal === "unpicked") return !Boolean(item.checked);
+        return true;
+      });
+
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      filtered.forEach((item, idx) => {
+        const checked = Boolean(item.checked);
+        const tr = document.createElement("tr");
+        if (checked) tr.className = "row-selected";
+
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><strong>${item.nama}</strong></td>
+          <td>${item.opd}</td>
+          <td class="center">
+            <input
+              type="checkbox"
+              class="vote-check"
+              ${checked ? "checked" : ""}
+              onchange="onToggleItem(${item.sheetRow}, this.checked)"
+            />
+          </td>
+          <td class="center">
+            <span class="status-pill ${checked ? "picked" : ""}">
+              ${checked ? "✔ Dipilih" : "Belum"}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const totalPickedAll = rows.filter(r => Boolean(r.checked)).length;
+      document.getElementById("footerRow").innerHTML = `
+        <td colspan="3">TOTAL INOVASI YANG DIPILIH (${activeSheet})</td>
+        <td class="center">${totalPickedAll}</td>
+        <td class="center">dari ${rows.length}</td>
+      `;
+
+      updateKPIs(rows);
+    }
+
+    async function loadJuriData() {
+      if (isSaving) return;
+      const errBox = document.getElementById("errorBanner");
+      const statusBadge = document.getElementById("statusBadge");
+
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("TEMPEL_URL")) {
+        errBox.style.display = "block";
+        errBox.textContent = "URL Apps Script belum diisi. Ganti TEMPEL_URL_WEB_APP_BARU_ANDA dengan URL /exec dari Apps Script.";
+        return;
+      }
+
+      try {
+        statusBadge.textContent = "Memuat data...";
+        const url = `${APPS_SCRIPT_URL}?juriId=${encodeURIComponent(currentJuriId)}&_t=${Date.now()}`;
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (json.error) {
+          throw new Error(json.error);
+        }
+
+        if (json.juri && Array.isArray(json.juri.allowedSheets) && json.juri.allowedSheets.length) {
+          allowedSheets = json.juri.allowedSheets;
+        }
+        sheetsPayload = json.sheets || {};
+        errBox.style.display = "none";
+        statusBadge.textContent = `● Terhubung • Juri ${currentJuriId}`;
+        document.getElementById("lastUpdateText").textContent =
+          `Terhubung ke spreadsheet juri • Pembaruan terakhir: ${json.updatedAt || "-"}`;
+
+        renderTabs();
+        renderView();
+      } catch (err) {
+        errBox.style.display = "block";
+        errBox.textContent = "Gagal mengambil data juri: " + err.message;
+        statusBadge.textContent = "⚠ Gagal Terhubung";
+      }
+    }
+
+    window.onJuriChange = function() {
+      currentJuriId = Number(document.getElementById("juriSelect").value) || 1;
+      allowedSheets = JURI_ALLOWED[currentJuriId] || ["AKTIF OPD", "AKTIF UNIT"];
+      activeSheet = allowedSheets[0];
+      renderTabs();
+      loadJuriData();
+    };
+
+    document.getElementById("searchInput").addEventListener("input", renderView);
+    document.getElementById("filterSelect").addEventListener("change", renderView);
+
+    renderTabs();
+    loadJuriData();
+  </script>
+</body>
+</html>
